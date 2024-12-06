@@ -1,0 +1,158 @@
+<h3>Introduction</h3>
+<p>
+    Regulators ask to Financial Institutions for performing a systematic screening against lists of sanctioned
+    individuals and
+    organizations published by them in order to mitigate anti money laundering risks. For example:
+<ul>
+    <li>Onboarding of new potential clients.</li>
+    <li>Stock of active clients.</li>
+    <li>The parties (originator, beneficiary, etc) of payments orders.</li>
+</ul>
+</p>
+<p>
+    That is why it is important for the Financial Institutions to know where to find and understand the information of the
+    sanctions lists published by the regulators.
+</p>
+<p>There are three main sources of sanctioned individuals and organizations: <strong>United Nations (UN)</strong>,
+    <strong>European Union (EU)</strong> and <strong>Office of Foreign Assets Control (OFAC)</strong>, the last one is
+    the main source of USA sanctioned
+    individuals and organizations.
+</p>
+<p>
+    UN, EU and OFAC occasionally change the organization of their websites and lists so the information provided in
+    this post may not be accurate after such changes, especially the links. However, the general ideas provided in this
+    post will
+    still be a good reference.
+</p>
+<h3>UN</h3>
+<p>
+    The UN sanctions lists can be found in <a
+        href="https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list" title="UN list"
+        target="_blank">United
+        Nations Security Council Consolidated List</a>. The page provides two different links in order to access the
+    list content
+</p>
+<ul>
+    <li><a href="https://scsanctions.un.org/consolidated" title="UN list html" target="_blank">HTML</a></li>
+    <li><a href="https://scsanctions.un.org/resources/xml/en/consolidated.xml" title="UN list xml"
+            target="_blank">XML</a></li>
+</ul>
+<p>
+    If the Financial Institution needs to integrate the UN list of sanctioned individuals and organizations with its
+    information systems then the XML format is recommended. There is no schema available in UN website for the xml file,
+    but the page <a href="https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list" title="UN list"
+        target="_blank">United
+        Nations Security Council Consolidated List</a> provides a good description of the information contained in the
+    xml file. Moreover, a deep inspection of the file allows to infer the schema.
+</p>
+<h3>EU</h3>
+<p>
+    The entry point to the EU sanctions lists records is the page <a
+        href="https://data.europa.eu/data/datasets/consolidated-list-of-persons-groups-and-entities-subject-to-eu-financial-sanctions?locale=en"
+        title="EU list" target="_blank">consolidated list of persons, groups and entities subject to EU financial
+        sanctions</a>. The list can be downloaded in several formats and versions. The most important formats in order
+    to integrate
+    the data with the Financial Institution information systems are:
+</p>
+<ul>
+    <li>
+        CSV: <a
+            href="https://webgate.ec.europa.eu/fsd/fsf/public/files/csvFullSanctionsList/content?token=dG9rZW4tMjAxNw"
+            title="EU list csv v1" target="_blank">version 1.0</a> and <a
+            href="https://webgate.ec.europa.eu/fsd/fsf/public/files/csvFullSanctionsList_1_1/content?token=dG9rZW4tMjAxNw"
+            title="EU list csv v1.1" target="_blank">version 1.1</a>
+    </li>
+    <li>
+        <a href="https://webgate.ec.europa.eu/fsd/fsf/public/files/xmlFullSanctionsList_1_1/content?token=dG9rZW4tMjAxNw"
+            title="EU list xml v1.1" target="_blank">XML</a> (only available in version 1.1)
+    </li>
+</ul>
+<p>
+    The page <a
+        href="https://data.europa.eu/data/datasets/consolidated-list-of-persons-groups-and-entities-subject-to-eu-financial-sanctions?locale=en"
+        title="EU list" target="_blank">consolidated list of persons, groups and entities subject to EU financial
+        sanctions</a> does not provide any link to the documentation of the lists in csv and xml formats but if you
+    access to <a href="https://webgate.ec.europa.eu/fsd/fsf" title="EU FSF" target="_blank">Financial Sanctions Files
+        (FSF) website</a> it is possible to download the <a
+        href="https://webgate.ec.europa.eu/fsd/fsf/public/files/xsdFullSanctionsList_1_1/content?token=n00g1rgu"
+        title="EU xml v1.1 schema" target="_blank">schema of the xml version 1.1</a>. However in order to access that
+    page you have to
+    create a account. Moreover, it is also possible to download the version 1.0 of the list in xml format.
+</p>
+<h3>OFAC</h3>
+<p>
+    <a href="https://ofac.treasury.gov/" title="OFAC landing page" target="_blank">The OFAC landing page</a> provides
+    access to USA sanctions lists. The OFAC lists are splitted into two main groups: <a
+        href="https://sanctionslist.ofac.treas.gov/Home/SdnList" title="OFAC SDN" target="_blank">Specially Designated
+        Nationals List (SDN)</a> and <a href="https://sanctionslist.ofac.treas.gov/Home/ConsolidatedList"
+        title="OFAC Non-SDN" target="_blank">Non-SDN Consolidated Sanctions List (Non-SDN)</a>. Within each group it is
+    possible to download
+    the list records in several formats. Among them the most relevant are:
+</p>
+<ul>
+    <li>CSV which is splitted into four files:
+        <ul>
+            <li>Main names: <a href="https://sanctionslistservice.ofac.treas.gov/api/PublicationPreview/exports/SDN.CSV"
+                    title="OFAC SDN csv main" target="_blank">SDN</a> and <a
+                    href="https://sanctionslistservice.ofac.treas.gov/api/PublicationPreview/exports/CONS_PRIM.CSV"
+                    title="OFAC Non-SDN csv main" target="_blank">Non-SDN</a>
+            </li>
+            <li>Addresses: <a href="https://sanctionslistservice.ofac.treas.gov/api/PublicationPreview/exports/ADD.CSV"
+                    title="OFAC SDN csv addresses" target="_blank">SDN</a> and <a
+                    href="https://sanctionslistservice.ofac.treas.gov/api/PublicationPreview/exports/CONS_ADD.CSV"
+                    title="OFAC Non-SDN csv addresses" target="_blank">Non-SDN</a>
+            </li>
+            <li>Alternate names (aka): <a
+                    href="https://sanctionslistservice.ofac.treas.gov/api/PublicationPreview/exports/ALT.CSV"
+                    title="OFAC SDN csv addresses" target="_blank">SDN</a> and <a
+                    href="https://sanctionslistservice.ofac.treas.gov/api/PublicationPreview/exports/CONS_ALT.CSV"
+                    title="OFAC Non-SDN csv addresses" target="_blank">Non-SDN</a>
+            </li>
+            <li>Comments: <a
+                    href="https://sanctionslistservice.ofac.treas.gov/api/PublicationPreview/exports/SDN_COMMENTS.CSV"
+                    title="OFAC SDN csv comments" target="_blank">SDN</a> and <a
+                    href="https://sanctionslistservice.ofac.treas.gov/api/PublicationPreview/exports/CONS_COMMENTS.CSV"
+                    title="OFAC Non-SDN csv comments" target="_blank">Non-SDN</a>
+            </li>
+        </ul>
+    </li>
+    <li>XML with several versions of the information:
+        <ul>
+            <li>Enhanced: <a
+                    href="https://sanctionslistservice.ofac.treas.gov/api/PublicationPreview/exports/SDN_ENHANCED.XML"
+                    title="OFAC SDN xml enhanced" target="_blank">SDN</a> and <a
+                    href="https://sanctionslistservice.ofac.treas.gov/api/PublicationPreview/exports/CONS_ENHANCED.XML"
+                    title="OFAC Non-SDN csv enhanced" target="_blank">Non-SDN</a>
+            </li>
+            <li>Advanced: <a
+                    href="https://sanctionslistservice.ofac.treas.gov/api/PublicationPreview/exports/SDN_ADVANCED.XML"
+                    title="OFAC SDN xml advanced" target="_blank">SDN</a> and <a
+                    href="https://sanctionslistservice.ofac.treas.gov/api/PublicationPreview/exports/CONS_ADVANCED.XML"
+                    title="OFAC Non-SDN csv advanced" target="_blank">Non-SDN</a>
+            </li>
+            <li>Finally there is other version with no specific name but I call it standard: <a
+                    href="https://sanctionslistservice.ofac.treas.gov/api/PublicationPreview/exports/SDN.XML"
+                    title="OFAC SDN xml standard" target="_blank">SDN</a> and <a
+                    href="https://sanctionslistservice.ofac.treas.gov/api/PublicationPreview/exports/CONSOLIDATED.XML"
+                    title="OFAC Non-SDN csv standard" target="_blank">Non-SDN</a>
+            </li>
+        </ul>
+    </li>
+</ul>
+<p>
+    The documentation about the above formats can be accessed using the links:
+</p>
+<ul>
+    <li><a href="https://sanctionslistservice.ofac.treas.gov/api/PublicationPreview/exports/DAT_SPEC.TXT"
+            title="OFAC SDN csv documentation" target="_blank">CSV</a>
+    </li>
+    <li><a href="https://sanctionslistservice.ofac.treas.gov/api/PublicationPreview/exports/ENHANCED_XML.xsd"
+        title="OFAC SDN xml schema" target="_blank">XML enhanced schema</a>
+    </li>
+    <li><a href="https://sanctionslistservice.ofac.treas.gov/api/PublicationPreview/exports/ADVANCED_XML.xsd"
+        title="OFAC SDN xml schema" target="_blank">XML advanced schema</a>
+    </li>
+    <li><a href="https://sanctionslistservice.ofac.treas.gov/api/PublicationPreview/exports/XML.xsd"
+        title="OFAC SDN xml schema" target="_blank">XML standard schema</a>
+    </li>
+</ul>
