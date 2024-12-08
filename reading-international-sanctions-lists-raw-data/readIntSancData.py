@@ -1,6 +1,5 @@
 import inoutlists
 import pandas as pd
-import numpy as np
 from pathlib import Path
 import os
 
@@ -88,7 +87,7 @@ dfIdFacts = dfId.groupby(
    num_list_entries = ("source", "count")   
 )
 
-dfNationalities = df.drop_duplicates(["id", "nationalities_country_desc"])
+dfNationalities = df.drop_duplicates(["id", "source", "nationalities_country_desc"])
 dfNationalitiesFacts = dfNationalities.groupby(
     [
         "source",
@@ -101,7 +100,7 @@ dfNationalitiesFacts = dfNationalities.groupby(
    num_list_entries = ("source", "count")   
 )
 
-dfAddresses = df.drop_duplicates(["id", "addresses_country_desc"])
+dfAddresses = df.drop_duplicates(["id", "source", "addresses_country_desc"])
 dfAddressesFacts = dfAddresses.groupby(
     [
         "source",
@@ -114,7 +113,7 @@ dfAddressesFacts = dfAddresses.groupby(
    num_list_entries = ("source", "count")   
 )
 
-dfPrograms = df.drop_duplicates(["id", "programs"])
+dfPrograms = df.drop_duplicates(["id", "source", "programs"])
 dfProgramsFacts = dfPrograms.groupby(
     [
         "source",

@@ -1,1 +1,228 @@
 <h3>Introduction</h3>
+<p>
+    Financial Institutions (FIs) must run screening processes against the sanctions lists published by the
+    regulators so the FIs need to update the sanctions lists used by their screening processes
+    according to the regulators updates.
+</p>
+<p>On the other hand, regulators maintain their sanctions lists in updated
+    files of different formats (xml, csv, pdf, etc) which can be accessed by the Financial Institutions from the
+    regulators websites (see this <a
+        href="https://www.ejtorre.com/blog/post/main-international-sanctions-lists-data-sources/"
+        title="Main international sanctions lists data sources" target="_blank">post</a>).
+</p>
+<p>Unfortunately, although the file formats (xml, csv, etc) and the
+    provided information (name, address, nationality, date of birth, etc) is almost the same across regulators there is
+    no homogeneity and normalization among the regulators files so FIs must build their own Extract, Transform and Load
+    (ETL) processes or use third party solutions as <a href="https://www.opensanctions.org/" title="Open Sanctions"
+        target="_blank">Open Sanctions</a>, <a
+        href="https://www.lseg.com/en/data-analytics/financial-data/risk-intelligence/world-check-records"
+        title="LSG-World Check" target="_blank">LSG-World Check</a>, <a
+        href="https://www.dowjones.com/professional/risk/sanctions-compliance/" title="LSG-World Check"
+        target="_blank">Dow Jones</a>, <a href="https://risk.lexisnexis.com/" title="Lexis Nexis" target="_blank">Lexis
+        Nexis</a>, etc in order to update efficiently the FIs sanctions lists.
+</p>
+<p>
+    In this post I will will focus on
+    reading the sanctions lists files of the main regulators (United Nations (UN), European Union (EU) and Office of
+    Foreign Assets Control (OFAC)) using a simple but extensible python module developed by me
+    (<a href="https://pypi.org/project/inoutlists/" title="inoutlists" target="_blank">inoutlists</a>).
+</p>
+<h3>Reading the raw data</h3>
+<p> UN, EU and OFAC sanctions lists can be accessed in xml format but the schemas are different among them so it is not
+    possible to develop a common ETL for the three sources. However the records of the three sources share similar
+    information: name, aliases, addresses, dates of births, identification numbers (passports, national ids,
+    etc), nationalities, the regulation where the record appears (called program in the case of OFAC), etc and even each
+    record has a unique identifier in each source.
+</p>
+<p>Taking into account the current situation of the data, the recommended strategy is to develop a ETL which maps the
+    data of each source to a common interface. That is the strategy followed by the main lists providers of the market
+    and it is the strategy followed by the python module <a href="https://pypi.org/project/inoutlists/"
+        title="inoutlists" target="_blank">inoutlists</a>.
+</p>
+<p>
+    <a href="https://pypi.org/project/inoutlists/" title="inoutlists" target="_blank">inoutlists</a> allows to create
+    specific mappers to load any format of sanctions lists. They are called loaders which are python. Their main
+    function is to read the original raw data and maps it to common dictionary interface. That dictionary can be
+    transformed to different formats using classes called dumpers. Currently, the <a
+        href="https://pypi.org/project/inoutlists/" title="inoutlists" target="_blank">inoutlists</a> module has three
+    loaders for reading the sanctions lists of UN, EU and OFAC in their xml formats and three dumpers to serialize
+    the data to JSON, CSV and Pandas Data Frame. New loaders and dumpers can be created in order to read different
+    sources or changes in the formats of EU, UN and OFAC or to serialize the data to different formats or with a
+    different structure. See the <a href="https://github.com/ejtorre/inoutlists/" title="inoutlists
+    documentation" target="_blank">inoutlists documentation</a> for more details.
+</p>
+<p>
+    In order to know the details about how to read the raw date of the EU, UN and OFAC sanctions lists, check the <a
+        href="https://github.com/ejtorre/ejtorreBlog/blob/main/reading-international-sanctions-lists-raw-data/readIntSancData.py/"
+        title="reading UN, EU and OFAC raw data" target="_blank">code</a> used in this post.
+</p>
+
+<h3>Data summary</h3>
+
+<p>Below some tables summarizing the data. For more details about the data, download the file <a
+        href="https://github.com/ejtorre/ejtorreBlog/blob/main/reading-international-sanctions-lists-raw-data/intSancFacts.xlsx">
+        intSancFacts.xlsx</a>.
+</p>
+<p>
+    The OFAC list is by far the larger. It contains three times more records that EU list which is the second larger. EU
+    and OFAC records are concentrated in the Ukrainian war related sanctions while UN records are more concentrated in
+    international terrorism which in the case of OFAC and EU is the second larger group of records. Finally, the third larger
+    group of OFAC records is narcotics (program SDNTK: Foreign Narcotics Kingpin Sanctions Regulations).
+</p>
+
+<table>
+    <caption>
+        # Sanctions lists records by source
+    </caption>
+    <thead>
+        <tr>
+            <th scope="col">Source</th>
+            <th scope="col" style="text-align: end"># Records</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">EU</th>
+            <td style="text-align: end">5.050</td>
+        </tr>
+        <tr>
+            <th scope="row">OFAC-NON-SDN</th>
+            <td style="text-align: end">443</td>
+        </tr>
+        <tr>
+            <th scope="row">OFAC-SDN</th>
+            <td style="text-align: end">16.866</td>
+        </tr>
+        <tr>
+            <th scope="row">UN</th>
+            <td style="text-align: end">879</td>
+        </tr>
+    </tbody>
+    <tfoot>
+        <tr>
+            <th scope="row">Total</th>
+            <td style="text-align: end">23.238</td>
+        </tr>
+    </tfoot>
+</table>
+
+<table>
+    <caption>
+        # Sanctions lists records by source and program
+    </caption>
+    <thead>
+        <tr>
+            <th scope="col">Source</th>
+            <th scope="col">Program</th>
+            <th scope="col" style="text-align: end"># Records</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th scope="row">EU</th>
+            <th scope="row">UKR</th>
+            <td style="text-align: end">2.247</td>
+        </tr>
+        <tr>
+            <th scope="row"></th>
+            <th scope="row">IRN</th>
+            <td style="text-align: end">496</td>
+        </tr>
+        <tr>
+            <th scope="row"></th>
+            <th scope="row">SYR</th>
+            <td style="text-align: end">410</td>
+        </tr>
+        <tr>
+            <th scope="row"></th>
+            <th scope="row">Other EU Programs</th>
+            <td style="text-align: end">1.897</td>
+        </tr>
+        <tr>
+            <th scope="row" colspan="2">Total EU</th>
+            <td style="text-align: end">5.050</td>
+        </tr>
+
+        <tr>
+            <th scope="row">OFAC-NON-SDN</th>
+            <th scope="row">UKRAINE-EO13662</th>
+            <td style="text-align: end">286</td>
+        </tr>
+        <tr>
+            <th scope="row"></th>
+            <th scope="row">NS-PLC</th>
+            <td style="text-align: end">78</td>
+        </tr>
+        <tr>
+            <th scope="row"></th>
+            <th scope="row">RUSSIA-EO14024</th>
+            <td style="text-align: end">73</td>
+        </tr>
+        <tr>
+            <th scope="row"></th>
+            <th scope="row">Other OFAC-NON-SDN Programs</th>
+            <td style="text-align: end">79</td>
+        </tr>
+        <tr>
+            <th scope="row" colspan="2">Total OFAC-NON-SDN</th>
+            <td style="text-align: end">516</td>
+        </tr>
+
+        <tr>
+            <th scope="row">OFAC-SDN</th>
+            <th scope="row">RUSSIA-EO14024</th>
+            <td style="text-align: end">5.778</td>
+        </tr>
+        <tr>
+            <th scope="row"></th>
+            <th scope="row">SDGT</th>
+            <td style="text-align: end">2.608</td>
+        </tr>
+        <tr>
+            <th scope="row"></th>
+            <th scope="row">SDNTK</th>
+            <td style="text-align: end">1.430</td>
+        </tr>
+        <tr>
+            <th scope="row"></th>
+            <th scope="row">Other OFAC-SDN Programs</th>
+            <td style="text-align: end">9.601</td>
+        </tr>
+        <tr>
+            <th scope="row" colspan="2">Total OFAC-SDN</th>
+            <td style="text-align: end">19.417</td>
+        </tr>
+
+        <tr>
+            <th scope="row">UN</th>
+            <th scope="row">Al-Qaida</th>
+            <td style="text-align: end">344</td>
+        </tr>
+        <tr>
+            <th scope="row"></th>
+            <th scope="row">DPRK</th>
+            <td style="text-align: end">155</td>
+        </tr>
+        <tr>
+            <th scope="row"></th>
+            <th scope="row">Taliban</th>
+            <td style="text-align: end">140</td>
+        </tr>
+        <tr>
+            <th scope="row"></th>
+            <th scope="row">Other UN Programs</th>
+            <td style="text-align: end">240</td>
+        </tr>
+        <tr>
+            <th scope="row" colspan="2">Total UN</th>
+            <td style="text-align: end">879</td>
+        </tr>
+
+    </tbody>
+    <tfoot>
+        <tr>
+            <th scope="row" colspan="2">Total</th>
+            <td style="text-align: end">25.726</td>
+        </tr>
+    </tfoot>
+</table>
