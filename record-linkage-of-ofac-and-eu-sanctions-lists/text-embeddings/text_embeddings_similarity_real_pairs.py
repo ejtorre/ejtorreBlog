@@ -1,17 +1,34 @@
+###############################
+#            Paths            #
+###############################
+
+import os
+import sys
+
+PATH_SRC = os.path.dirname(os.path.abspath(__file__))
+PATH_PROJECT = os.path.normpath(os.path.join(PATH_SRC, ".."))
+PATH_DATA = os.path.join(PATH_PROJECT, "data")
+PATH_SUPPORT = os.path.join(PATH_PROJECT, "support")
+
+if PATH_PROJECT not in sys.path:
+    sys.path.append(PATH_PROJECT)
+
+###############################
+#          Imports            #
+###############################
+
 import os
 import pandas as pd
 import numpy as np
-from sentence_transformers import util
-import faiss
 
 ###############################
 #         Parameters          #
 ###############################
 
-FILES_PATH = os.path.dirname(os.path.abspath(__file__))
-FILE_OS = os.path.join(FILES_PATH, "open_sanctions_eu_ofac_id_mapping.parquet")
-FILE_DATA = os.path.join(FILES_PATH, "record_linkage_OFAC_EU_embeddings.parquet")
-FILE_RESULTS = os.path.join(FILES_PATH, "record_linkage_OFAC_EU_similarity_real_pairs_percentiles.xlsx")
+FILE_OS = os.path.join(PATH_DATA, "open_sanctions.parquet")
+FILE_EMB = os.path.join(PATH_DATA, "data_text_embeddings.parquet")
+FILE_RESULTS_PERC = os.path.join(PATH_SRC, "text_embeddings_similarity_real_pairs_percentiles.xlsx")
+FILE_RESULTS_DATA = os.path.join(PATH_DATA, "text_embeddings_similarity_real_pairs_data.xlsx")
 
 ###############################
 #    Classes and functions    #
@@ -28,8 +45,8 @@ dfOS = pd.read_parquet(
     engine = "fastparquet"
 )
 
-dfData = pd.read_parquet(
-    FILE_DATA,
+dfEmb = pd.read_parquet(
+    FILE_EMB,
     engine= "fastparquet"
 )
 
@@ -40,13 +57,13 @@ dfData = pd.read_parquet(
 dfOSInData = dfOS.copy()
 
 maskOsInDataEU = (
-    (~dfOSInData.id_ori_eu.isin(dfData[dfData.source == "EU"].id.unique())) &
+    (~dfOSInData.id_ori_eu.isin(dfEmb[dfEmb.source == "EU"].id.unique())) &
     (dfOSInData.source.isin(["EU", "EU & OFAC"]))
 )
 dfOSInData = dfOSInData[~maskOsInDataEU].copy()
 
 maskOsInDataOFAC = (
-    (~dfOSInData.id_ori_ofac.isin(dfData[dfData.source == "OFAC"].id.unique())) &
+    (~dfOSInData.id_ori_ofac.isin(dfEmb[dfEmb.source == "OFAC"].id.unique())) &
     (dfOSInData.source.isin(["OFAC", "EU & OFAC"]))
 )
 dfOSInData = dfOSInData[~maskOsInDataOFAC].copy()
@@ -64,8 +81,8 @@ dfOSReal = dfOSInData[
 
 # Get real pairs similarities
 
-dfData_EU = dfData[dfData.source == "EU"]
-dfData_OFAC = dfData[dfData.source == "OFAC"]
+dfData_EU = dfEmb[dfEmb.source == "EU"]
+dfData_OFAC = dfEmb[dfEmb.source == "OFAC"]
 
 dfOSRealSim = (
     dfOSReal
@@ -97,7 +114,7 @@ dfOSRealSim["similarity"] = np.sum(emb_EU * emb_OFAC, axis=1)
 # Get distance percentiles
 
 dfOSRealIds = dfOSRealSim[
-    [c for c in dfOSRealSim.columns if not c.startswith("dim")]
+    [c for c in dfOSRealSim.columns if not c.startswith("emb")]
 ].copy()
 
 dfOSRealIds.sort_values(
@@ -141,8 +158,14 @@ dfSummary['num_real_pairs_acu'] = (dfSummary['percentile'] * numReal).round().as
 
 # Export results
 
+dfOSRealIds.to_excel(
+    FILE_RESULTS_DATA,
+    sheet_name = "data",
+    index = False
+)
+
 dfSummary.to_excel(
-    FILE_RESULTS, 
+    FILE_RESULTS_PERC, 
     sheet_name = "data",
     index = False
 )

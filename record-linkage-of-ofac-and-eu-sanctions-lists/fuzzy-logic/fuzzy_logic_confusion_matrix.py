@@ -1,19 +1,35 @@
-import inoutlists
+###############################
+#            Paths            #
+###############################
+
 import os
+import sys
+
+PATH_SRC = os.path.dirname(os.path.abspath(__file__))
+PATH_PROJECT = os.path.normpath(os.path.join(PATH_SRC, ".."))
+PATH_DATA = os.path.join(PATH_PROJECT, "data")
+PATH_SUPPORT = os.path.join(PATH_PROJECT, "support")
+
+if PATH_PROJECT not in sys.path:
+    sys.path.append(PATH_PROJECT)
+
+###############################
+#          Imports            #
+###############################
+
 import pandas as pd
 import numpy as np
 import recordlinkage
-from recodLinkange_OFAC_EU_utils import timer
+from support.utils import timer, confusion_matrix
 
 ###############################
 #         Parameters          #
 ###############################
 
-FILES_PATH = os.path.dirname(os.path.abspath(__file__))
-FILE_OS = os.path.join(FILES_PATH, "open_sanctions_eu_ofac_id_mapping.parquet")
-FILE_DATA = os.path.join(FILES_PATH, "record_linkage_OFAC_EU_data.parquet")
-FILE_RESULTS = os.path.join(FILES_PATH, "record_linkage_OFAC_EU_confusion_matrix.xlsx")
-FILE_PROCESS_MEASURES = os.path.join(FILES_PATH, "record_linkage_OFAC_EU_confusion_matrix_process_measures.xlsx")
+FILE_OS = os.path.join(PATH_DATA, "open_sanctions.parquet")
+FILE_DATA = os.path.join(PATH_DATA, "data_EU_OFAC.parquet")
+FILE_RESULTS = os.path.join(PATH_SRC, "fuzzy_logic_confusion_matrix.xlsx")
+FILE_PROCESS_MEASURES = os.path.join(PATH_SRC, "fuzzy_logic_confusion_matrix_process_measures.xlsx")
 
 BLOKED_TYPES_COLUMNS = {
     "I": [
@@ -24,6 +40,20 @@ BLOKED_TYPES_COLUMNS = {
         "addresses_country_ISO_code"
     ]
 }
+
+RELEVANT_COLS = [
+    "source",
+    "id",
+    "IDX",
+    "type",
+    "names_whole_name",
+    "names_whole_name_norm",
+    "dates_of_birth_year",
+    "dates_of_birth_date_of_birth",
+    "addresses_city",
+    "addresses_city_norm",
+    "addresses_country_ISO_code"
+]
 
 thresholds = [
     0.70,
@@ -40,69 +70,6 @@ processMeasures = []
 ###############################
 #    Classes and functions    #
 ###############################
-
-def confusion_matrix(
-        dfAssestment,
-        dfTot,
-        entityType,
-        threshold        
-    ):
-
-    df = dfAssestment[dfAssestment.type == entityType].copy()    
-
-    TP = (
-        (df["distance_max"] >= threshold) &
-        (df["real"] == True) &
-        (df["in_block"] == True)
-    ).sum()
-    FP = (
-        (df["distance_max"] >= threshold) &
-        (df["real"] == False) &
-        (df["in_block"] == True)
-    ).sum()
-    FN_THRESHOLD = (
-        (df["distance_max"] < threshold) &
-        (df["real"] == True) &
-        (df["in_block"] == True)
-    ).sum()
-    FN_BLOCK = (        
-        (df["real"] == True) &
-        (df["in_block"] == False)
-    ).sum()
-    FN_TOT = FN_THRESHOLD + FN_BLOCK
-    totEU = (
-        (dfTot.source == "EU") &
-        (dfTot.type == entityType)
-    ).sum()
-    totOFAC = (
-        (dfTot.source == "OFAC") &
-        (dfTot.type == entityType)
-    ).sum()    
-    TN = (totEU * totOFAC) - TP - FP - FN_TOT
-
-    precision = TP / (TP + FP) if (TP + FP) > 0 else 0
-    recall = TP / (TP + FN_TOT) if (TP + FN_TOT) > 0 else 0
-    accuracy = (TP + TN) / (TP + FP + FN_TOT + TN) if (TP + FP + FN_TOT + TN) > 0 else 0
-    f1 = (
-        2 * precision * recall / (precision + recall)
-        if (precision + recall) > 0
-        else 0
-    )
-
-    return {
-        "type": entityType,
-        "threshold": threshold,
-        "TP": TP,
-        "FP": FP,
-        "FN_THRESHOLD": FN_THRESHOLD,
-        "FN_BLOCK": FN_BLOCK,
-        "FN_TOT": FN_TOT,        
-        "TN": TN,
-        "precision": precision,
-        "recall": recall,
-        "accuracy": accuracy,
-        "f1": f1
-    }
 
 ###############################
 #          Process            #
@@ -135,15 +102,65 @@ with timer("Data retrieval", processMeasures):
         inplace = True
     )
 
-# Record Linkage
+# Data preparation
 
-lsCompare = []
+with timer("Data preparation", processMeasures):
+
+    lsDataRL = []    
+
+    for entitityType, columnsBlock in BLOKED_TYPES_COLUMNS.items():
+
+        dfDataRLType = dfData[
+            (dfData.type == entitityType) &
+            (dfData.names_strong)
+        ].copy()
+
+        dfDataRLType.sort_values(
+            by=[
+                "source", 
+                "id", 
+                "names_whole_name_norm"
+            ] + columnsBlock,
+            inplace=True
+        )
+
+        dfDataRLType.drop_duplicates(
+            subset=[
+                "source", 
+                "id", 
+                "names_whole_name_norm"
+            ] + columnsBlock,
+            keep="first",
+            inplace=True
+        )
+        dfDataRLType = dfDataRLType[RELEVANT_COLS]
+
+        lsDataRL.append(dfDataRLType)
+
+    dfDataRL = pd.concat(lsDataRL)
+
+    dfDataRLIds = dfDataRL.copy()
+
+    dfDataRLIds.sort_values(
+        by = ["source", "id", "IDX"],
+        inplace = True
+    )
+
+    dfDataRLIds.drop_duplicates(
+        subset = ["source", "id"],
+        keep="first",
+        inplace = True
+    )
+
+# Record Linkage
 
 with timer("Record linkange", processMeasures):
 
+    lsCompare = []
+
     for entityType, columnsBlock in BLOKED_TYPES_COLUMNS.items():
         
-        dfDataCompareType = dfData[dfData.type == entityType].copy()
+        dfDataCompareType = dfDataRL[dfDataRL.type == entityType].copy()
         dfDataCompareType.set_index("IDX", inplace=True)
         
         indexer = recordlinkage.Index()
@@ -311,6 +328,8 @@ with timer("Get confusion matrix", processMeasures):
                 dfAssestment,
                 dfDataIds,
                 entityType,
+                "distance_max",
+                "in_block",
                 threshold
             )            
             lsCm.append(cm)

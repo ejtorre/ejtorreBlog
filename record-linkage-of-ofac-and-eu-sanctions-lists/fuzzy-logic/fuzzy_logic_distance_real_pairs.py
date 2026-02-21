@@ -1,4 +1,22 @@
+###############################
+#            Paths            #
+###############################
+
 import os
+import sys
+
+PATH_SRC = os.path.dirname(os.path.abspath(__file__))
+PATH_PROJECT = os.path.normpath(os.path.join(PATH_SRC, ".."))
+PATH_DATA = os.path.join(PATH_PROJECT, "data")
+PATH_SUPPORT = os.path.join(PATH_PROJECT, "support")
+
+if PATH_PROJECT not in sys.path:
+    sys.path.append(PATH_PROJECT)
+
+###############################
+#          Imports            #
+###############################
+
 import pandas as pd
 import numpy as np
 import recordlinkage
@@ -7,10 +25,9 @@ import recordlinkage
 #         Parameters          #
 ###############################
 
-FILES_PATH = os.path.dirname(os.path.abspath(__file__))
-FILE_OS = os.path.join(FILES_PATH, "open_sanctions_eu_ofac_id_mapping.parquet")
-FILE_DATA = os.path.join(FILES_PATH, "record_linkage_OFAC_EU_data.parquet")
-FILE_RESULTS = os.path.join(FILES_PATH, "record_linkage_OFAC_EU_distance_real_pairs_percentiles.xlsx")
+FILE_OS = os.path.join(PATH_DATA, "open_sanctions.parquet")
+FILE_DATA = os.path.join(PATH_DATA, "data_EU_OFAC.parquet")
+FILE_RESULTS = os.path.join(PATH_SRC, "fuzzy_logic_distance_real_pairs_percentiles.xlsx")
 
 ###############################
 #    Classes and functions    #

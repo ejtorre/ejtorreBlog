@@ -1,4 +1,17 @@
+###############################
+#            Paths            #
+###############################
+
 import os
+
+PATH_SRC = os.path.dirname(os.path.abspath(__file__))
+PATH_PROJECT = os.path.normpath(os.path.join(PATH_SRC, ".."))
+PATH_DATA = os.path.join(PATH_PROJECT, "data")
+
+###############################
+#          Imports            #
+###############################
+
 import pandas as pd
 import numpy as np
 
@@ -6,14 +19,12 @@ import numpy as np
 #         Parameters          #
 ###############################
 
-FILE_PATH = os.path.dirname(os.path.abspath(__file__))
-
 FILES_OS = {
-    "EU": os.path.join(FILE_PATH, "targets.nested.EU.json"),
-    "OFAC": os.path.join(FILE_PATH, "targets.nested.OFAC.json")
+    "EU": os.path.join(PATH_DATA, "targets.nested.EU.json"),
+    "OFAC": os.path.join(PATH_DATA, "targets.nested.OFAC.json")
 }
 
-FILE_RESULTS = os.path.join(FILE_PATH, "open_sanctions.parquet")
+FILE_RESULTS = os.path.join(PATH_DATA, "open_sanctions.parquet")
 
 ###############################
 #    Classes and functions    #

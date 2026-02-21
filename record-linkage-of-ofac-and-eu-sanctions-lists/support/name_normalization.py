@@ -219,6 +219,14 @@ LEGAL_REGEX = re.compile("|".join(LEGAL_TERMS), re.IGNORECASE)
 #    Classes and functions    #
 ###############################
 
+def normalize_name_basic(name):
+    if not isinstance(name, str):
+        return ""
+    name = unicodedata.normalize("NFKC", name)
+    name = re.sub(r"[^\w\s]", " ", name)
+    name = re.sub(r"\s+", " ", name).strip()
+    return name
+
 trans = icu.Transliterator.createInstance("Any-Latin; Latin-ASCII")
 
 def normalize_name(text):
