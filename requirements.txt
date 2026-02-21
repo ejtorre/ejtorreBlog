@@ -1,4 +1,9 @@
-inoutlists==1.0.1
-numpy==1.26.4
+inoutlists==1.0.3
+numpy==2.3.2
 openpyxl==3.1.5
-pandas==2.2.2
+pandas==2.3.2
+recordlinkage==0.16
+pyicu==2.16
+sentence-transformers==5.2.2
+faiss-cpu==1.13.2
+fastparquet==2025.12.0

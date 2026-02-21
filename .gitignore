@@ -1,2 +1,75 @@
 .test/
 .vscode/
+
+# Byte-compiled / optimized / DLL files
+
+pycache/
+*.py[cod]
+*$py.class
+__pycache__/
+*.pyc
+*.pyo
+
+# C extensions
+
+*.so
+
+# Distribution / packaging
+
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Virtual environments
+
+.venv/
+venv/
+env/
+ENV/
+
+# PyInstaller
+
+*.spec
+
+# Installer logs
+
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage
+
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+.pytest_cache/
+
+# Jupyter Notebook
+
+.ipynb_checkpoints/
+
+# mypy
+
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre
+
+.pyre/
+
+# pytype
+
+.pytype/
+
+# Ruff
+
+.ruff_cache/
+
+# Specific files or folders
+
+record-linkage-of-ofac-and-eu-sanctions-lists/data
+record-linkage-of-ofac-and-eu-sanctions-lists/docs
