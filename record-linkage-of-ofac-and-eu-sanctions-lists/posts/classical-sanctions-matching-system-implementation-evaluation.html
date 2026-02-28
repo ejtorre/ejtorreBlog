@@ -1,14 +1,193 @@
-<h3>Part of the Series: Modern Entity Matching for Compliance Systems</h3>
-
-<ul>
-  <li>Part 1/5: <a href="/blog/post/modern-entity-matching-for-sanctions-screening">Modern Entity Matching for Sanctions Screening</a></li>
-  <li>Part 2/5: <a href="/blog/post/evaluating-match-quality-in-sanctions-screening-systems">Evaluating Match Quality in Sanctions Screening Systems</a></li>
-  <li><strong>Part 3/5:</strong> <a href="/blog/post/classical-sanctions-matching-system-implementation-evaluation">Classical Sanctions Matching System: Implementation and Evaluation</a></li>
-  <li>Part 4/5: <a href="/blog/post/embedding-based-sanctions-matching-system-implementation-evaluation">Embedding-Based Sanctions Matching System: Implementation and Evaluation</a></li>
-  <li>Part 5/5: <a href="/blog/post/operational-considerations-for-sanctions-entity-matching">Operational Considerations for Sanctions Entity Matching</a></li>
-</ul>
+<h3>Introduction</h3>
 
 <p>
-  <a href="/blog/post/evaluating-match-quality-in-sanctions-screening-systems">⬅️ Previous</a> |
-  <a href="/blog/post/embedding-based-sanctions-matching-system-implementation-evaluation">Next ➡️</a>
+In <a href="/blog/post/a-practical-evaluation-of-classical-and-embedding-based-entity-matching-for-sanctions-screening/">Part 1</a> of this series,  we presented the problem context and defined the experimental framework used to compare entity matching systems for sanctions screening. This article focuses on the implementation and evaluation of a classical record linkage pipeline using string similarity measures.
 </p>
+
+<p>
+The goal of this evaluation is to quantify the performance of a traditional matching system and expose where its limitations arise, both in terms of predictive accuracy and computational efficiency
+</p>
+
+<p>
+The classical pipeline consists of:
+</p>
+
+<ul>
+  <li>Preparing and normalizing entity names</li>
+  <li>Generating candidate pairs using blocking in order to reduce the number of comparisons</li>
+  <li>Computing similarity scores</li>
+  <li>Evaluating classification performance under different thresholds</li>
+</ul>
+
+<h3>Data Preparation and Normalization</h3>
+
+<p>Entity name preprocessing is a critical first step in any record linkage pipeline. The goal is to reduce superficial noise and variability in the raw data so that similarity measures operate on cleaner, more comparable text representations. The reference implementation for this stage can be found at the following GitHub location: <a href="https://github.com/ejtorre/ejtorreBlog/blob/main/record-linkage-of-ofac-and-eu-sanctions-lists/data-preparation/data_preparation.py" target="_blank">data_preparation.py</a></p>
+
+<p>The main transformations on the entities names are:</p>
+
+<ul>
+  <li><strong>Transliteration</strong> of non-Latin scripts into a Latin alphabet where necessary.</li>
+  <li><strong>Unicode normalization</strong> to ensure consistent representation of accented characters and diacritics.</li>  
+  <li><strong>Case folding</strong> (converting all text to lower case) to avoid case-sensitive mismatches.</li>
+  <li><strong>Alphanumeric filtering</strong> — removal of all characters that are not letters (a–z) or digits (0–9), eliminating punctuation, symbols, and other non-alphanumeric elements.</li>  
+  <li><strong>Legal suffix stripping</strong> for organization names, removing terms like "SA", "INC", "LLC", "LTD", "SL", and other common corporate designators that do not contribute to identity resolution.</li>
+  <li><strong>Whitespace normalization</strong> to collapse multiple spaces and trim leading/trailing whitespace.</li>
+</ul>
+
+<p>Moreover, for blocking purposes, additional normalization is applied to city names based on a <a href="https://github.com/ejtorre/ejtorreBlog/blob/main/record-linkage-of-ofac-and-eu-sanctions-lists/support/addresses_city_normalization.csv" target="_blank">curated list</a> of common city name variations and standardizations. This ensures that minor spelling differences in city names do not prevent matching of otherwise identical entities.</p>
+
+<h3>Blocking Strategy</h3>
+
+<p>
+As discussed previously, comparing every EU entity against every OFAC entity would result in a full Cartesian product. Given the size of both lists, this would generate hundreds of millions of candidate comparisons, most of which are clearly irrelevant. Blocking reduces this search space by restricting comparisons to entities that share certain structural characteristics.
+</p>
+
+<p>The first and most fundamental blocking rule is to compare entities only within the same record type:</p>
+
+<ul>
+  <li>Individuals are only compared against individuals</li>
+  <li>Organizations are only compared against organizations</li>
+</ul>
+
+<p>This immediately removes structurally impossible matches (e.g., a natural person matched against a corporation), significantly reducing the search space.</p>
+
+<h4>Alternative Blocking Scenarios and Comparison Volume</h4>
+
+<p>Several blocking configurations were evaluated to quantify their impact on the number of generated candidate pairs. For variables that may contain missing values, two strategies were considered:</p>
+
+<ul>
+  <li><strong>Ignore missing values:</strong> comparisons are performed only when both records contain non-missing values for the blocking variable.</li>
+  <li><strong>Full comparison for missing values:</strong> records with missing blocking values are compared against all records of the same type in the other dataset.</li>
+</ul>
+
+<p>The table below summarizes the number of candidate comparisons generated under different blocking strategies (Individuals and Organizations shown separately).</p>
+
+<table>
+  <caption>Number of Candidate Comparisons Under Different Blocking Strategies</caption>
+  <thead>
+    <tr>
+      <th scope="col">Blocking Strategy</th>
+      <th scope="col">Entity Type</th>
+      <th scope="col" style="text-align: end">Comparisons (Ignore Missing)</th>
+      <th scope="col" style="text-align: end">Comparisons (Compare Missing to All)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td scope="row">Type only</td>
+      <td scope="row">Individuals</td>
+      <td scope="row" style="text-align: end">255,228,530</td>
+      <td scope="row" style="text-align: end">—</td>
+    </tr>
+    <tr>
+      <td scope="row">Type only</td>
+      <td scope="row">Organizations</td>
+      <td scope="row" style="text-align: end">232,853,922</td>
+      <td scope="row" style="text-align: end">—</td>
+    </tr>
+    <tr>
+      <td scope="row">Type + Year of Birth</td>
+      <td scope="row">Individuals</td>
+      <td scope="row" style="text-align: end">6,351,522</td>
+      <td scope="row" style="text-align: end">42,879,790</td>
+    </tr>
+    <tr>
+      <td scope="row">Type + Address Country ISO code</td>
+      <td scope="row">Organizations</td>
+      <td scope="row" style="text-align: end">31,805,603</td>
+      <td scope="row" style="text-align: end">92,741,222</td>
+    </tr>
+    <tr>
+      <td scope="row">Type + Address Normalized City + Address Country ISO code</td>
+      <td scope="row">Organizations</td>
+      <td scope="row" style="text-align: end">8,065,639</td>
+      <td scope="row" style="text-align: end">171,815,653</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4>Blocking Decision</h4>
+
+<p>
+The full Cartesian product produces more than 255 million comparisons for individuals and more than 232 million for organizations. This is computationally expensive and operationally inefficient.
+</p>
+
+<p>
+Adding year of birth reduces comparisons substantially for individuals, but if missing values are taken into account, they still generate large candidate sets.
+</p>
+
+<p>
+Country-level blocking significantly reduces the search space, and adding normalized city further constrains it. As in the case of individuals, allowing comparisons for records with missing blocking values increases the number of comparisons.
+</p>
+
+<p>
+Based on this analysis, the adopted blocking strategy was:
+</p>
+
+<ul>
+<li><strong>Individuals:</strong> Type + Year of Birth</li>
+<li><strong>Organizations:</strong> Type + Address Normalized City + Address Country ISO Code</li>
+</ul>
+
+<p>In both cases, records with missing blocking variables are excluded from comparison (i.e., missing values are ignored rather than compared against all entities of the same type).</p>
+
+<p>These blocking choices define the structural limits of the classical system. Any true match that falls outside these blocks will be classified as a structural false negative and cannot be recovered by threshold tuning alone.</p>
+
+<h3>Matching Strategy</h3>
+
+<p>Candidate pairs are compared using two complementary similarity measures:</p>
+
+<ul>
+  <li><strong>Jaro-Winkler similarity</strong>, which is sensitive to character-level edits and particularly effective for short strings and minor spelling variations.</li>
+  <li><strong>Cosine similarity</strong>, computed over token representations, which captures broader lexical overlap and is more robust to token reordering.</li>
+</ul>
+
+<p>The final similarity score is defined as:</p>
+
+<p>score = max(sim_JW, sim_cosine)</p>
+
+<p>Taking the maximum of both measures increases robustness by allowing a strong signal from either character-level similarity or token-level similarity to drive the final decision. This design choice aims to reduce parametric false negatives, ensuring that a true match is not discarded simply because one similarity metric underperforms in a specific case.</p>
+
+<p>A pair is classified as a match if the score exceeds a given threshold. The threshold is later varied to analyze precision-recall trade-offs.</p>
+
+<h3>Evaluation of the Classical Matching Pipeline</h3>
+
+<p>The performance of the classical fuzzy-matching system was evaluated across multiple similarity thresholds using manually validated cross-list matches as ground truth (<a href="https://www.opensanctions.org/" title="OpenSanctions" target="_blank">OpenSanctions</a>).</p>
+
+<p>For each threshold and for each entity type (individuals and organizations), results are summarized using the standard confusion matrix. The full confusion matrix is available <a href="https://github.com/ejtorre/ejtorreBlog/blob/main/record-linkage-of-ofac-and-eu-sanctions-lists/fuzzy-logic/fuzzy_logic_confusion_matrix.xlsx" target="_blank">here</a> and the impletation code can be consulted at <a href="https://github.com/ejtorre/ejtorreBlog/blob/main/record-linkage-of-ofac-and-eu-sanctions-lists/fuzzy-logic/fuzzy_logic_confusion_matrix.py" target="_blank">fuzzy_logic_confusion_matrix.py</a>. The indicators are defined as follows:</p>
+
+<ul>
+  <li><strong>TP:</strong> True positives</li>
+  <li><strong>FP:</strong> False positives</li>
+  <li><strong>FN_THRESHOLD:</strong> candidate pairs below similarity threshold</li>
+  <li><strong>FN_BLOCK:</strong> true matches excluded by blocking</li>
+  <li><strong>FN_TOT = FN_THRESHOLD + FN_BLOCK</strong></li>
+  <li><strong>Precision:</strong> TP / (TP + FP)</li>
+  <li><strong>Recall:</strong> TP / (TP + FN_TOT)</li>
+  <li><strong>F1:</strong> 2 * (Precision * Recall) / (Precision + Recall)</li>
+</ul>
+
+<h3>Conclusions</h3>
+
+<p>The classical system achieves maximum F1 at a threshold of 0.95 for both individuals and organizations. However, at this operating point recall is 0.82 for individuals and 0.63 for organizations — levels that may be operationally insufficient in high-sensitivity compliance contexts. Decreasing the threshold to improve recall results in a significant increase but even at the lowest threshold (0.7), recall remains low (0.89 for individuals and 0.72 for organizations)</p>
+
+<p>The key insight from the confusion matrix analysis is that recall degradation is not solely a threshold tuning problem because a material portion of total false negatives originates from the blocking stage.</p> 
+
+<p>Let T denote the total number of true cross-list matches. Because FN_BLOCK corresponds to matches excluded prior to scoring, the maximum achievable recall of the system is bounded by:</p>
+
+<p>max_recall = (T − FN_BLOCK) / T.</p>
+
+<p>In the case of individuals, FN_BLOCK = 235 and T = 2,129, yielding a structural maximum recall of 0.89. For organizations, FN_BLOCK = 254 and T = 910, resulting in a maximum recall of 0.72.</p>
+
+<p>This upper bound is independent of similarity tuning. Even with a zero threshold — i.e., classifying all candidate pairs as matches — recall cannot exceed this structural ceiling. Structural false negatives (FN_BLOCK) remain invisible to tuning, since they are never evaluated.</p>
+
+<p>In practice, this means that improving string similarity alone cannot materially increase recall beyond the structural ceiling imposed by blocking. Any further improvement would require revisiting the candidate generation strategy itself.</p>
+
+<h3>Part of the Series: A Practical Evaluation of Classical and Embedding-Based Entity Matching for Sanctions Screening</h3>
+
+<ul>
+  <li>Part 1/4: <a href="/blog/post/a-practical-evaluation-of-classical-and-embedding-based-entity-matching-for-sanctions-screening/">A Practical Evaluation of Classical and Embedding-Based Entity Matching for Sanctions Screening</a></li>
+  <li><strong>Part 2/4:</strong> <a href="/blog/post/classical-sanctions-matching-system-implementation-evaluation">Classical Sanctions Matching System — Implementation and Evaluation</a></li>
+  <li>Part 3/4: <a href="/blog/post/embedding-based-sanctions-matching-system-implementation-evaluation">Embedding-Based Sanctions Matching System — Implementation and Evaluation</a></li>
+  <li>Part 4/4: <a href="/blog/post/operational-considerations-for-sanctions-entity-matching">Operational Considerations for Sanctions Entity Matching</a></li>
+</ul>

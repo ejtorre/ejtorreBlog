@@ -1,0 +1,147 @@
+<h3>Introduction</h3>
+
+<p>
+Financial Institutions must determine whether their customers or transactional counterparties correspond to individuals or entities listed in official sanctions.
+</p>
+
+<p>
+This task is complicated by spelling variations, aliases, transliterations, inconsistent formatting, and multilingual representations. As a result, exact string matching is insufficient so Financial Institutions must rely on record linkage techniques.
+</p>
+
+<p>
+In this series, we evaluate two different matching paradigms applied to the sanctions screening problem:
+</p>
+
+<ul>
+
+<li>A classical approach based on string similarity measures.</li>
+<li>A modern approach based on text embeddings and vector similarity.</li>
+
+</ul>
+
+<p>
+The objective is to provide an empirical comparison grounded in measurable performance metrics.
+</p>
+
+<h3>The experiment</h3>
+
+<p>
+The experiment consists of performing cross-list entity matching between the <a
+href="https://data.europa.eu/data/datasets/consolidated-list-of-persons-groups-and-entities-subject-to-eu-financial-sanctions?locale=en"
+title="EU list" target="_blank">EU Consolidated Financial Sanctions List</a> and the <a
+href="https://sanctionslist.ofac.treas.gov/Home/SdnList" title="OFAC SDN" target="_blank">OFAC SDN List</a>.
+</p>
+
+<p>
+For each entity in the EU list, we search for corresponding entities in the OFAC list using the classical and embedding-based matching systems.
+</p>
+
+<p>
+Evaluation is based on cross-references provided by <a href="https://www.opensanctions.org/" title="OpenSanctions" target="_blank">OpenSanctions</a>. These mappings identify entity pairs that are known to correspond across the EU and OFAC datasets.
+</p>
+
+<p>The motivation for this experiment is twofold:</p>
+
+<ul>
+
+  <li><strong>Measuring Cross-List Overlap</strong>. Both the EU and OFAC sanctions lists are public and widely used in compliance systems. However, the extent to which they overlap is not always quantified.
+  </li>
+
+  <li><strong>Public and Reproducible Evaluation</strong>. OpenSanctions provides cross-list entity mappings that can be used for non-commercial purposes. In operational screening systems, false negatives are difficult to observe because missed matches do not generate alerts. Leveraging OpenSanctions cross-references allows us to explicitly measure recall — something that is rarely feasible in production environments.</li>
+
+</ul>
+
+<h3>Evaluation Methodology</h3>
+
+<p>
+Both matching systems — the classical record linkage pipeline and the embedding-based approach — are evaluated under the same experimental conditions in order to ensure comparability and isolate architectural differences rather than implementation bias.
+</p>
+
+<h4>Classification Performance</h4>
+
+<p>
+For each system, similarity scores are computed for candidate entity pairs generated after blocking or candidate retrieval. A decision threshold is then applied to classify each pair as either a match or a non-match.
+</p>
+
+<p>
+Rather than selecting a single arbitrary threshold, performance is evaluated across a range of thresholds. For each level, we compute the confusion matrix and derive the standard indicators:
+</p>
+
+<table>
+  <caption>
+    Confusion Matrix
+  </caption>
+  <thead>
+    <tr>
+      <th></th>
+      <th>Predicted Match</th>
+      <th>Predicted Non-Match</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Actual Match</td><td>True Positive (TP)</td>
+      <td>False Negative (FN)</td>
+    </tr>
+    <tr>
+      <td>Actual Non-Match</td><td>False Positive (FP)</td>
+      <td>True Negative (TN)</td>
+    </tr>
+  </tbody>
+</table>
+
+<ul>
+  <li><strong>Precision</strong> — proportion of predicted matches that are correct</li>
+  <li><strong>Recall</strong> — proportion of true matches successfully identified</li>
+  <li><strong>F1 score</strong> — harmonic balance between precision and recall</li>
+</ul>
+
+<p>
+This threshold-based analysis allows us to observe how each system behaves under different risk tolerances — from conservative (high precision) to aggressive (high recall) configurations.
+</p>
+
+<p>
+False negatives are further decomposed into two categories in order to better understand the origin of matching errors.
+</p>
+
+<ul>
+  <li><strong>Structural False Negatives</strong>. In the classical pipeline, this happens when the blocking strategy prevents two entities from being placed in the same block. In the embedding-based system, this occurs when candidate retrieval (e.g., nearest neighbor selection) fails to include the true pair among the evaluated candidates. Structural errors represent recall loss introduced by the architecture itself.</li>
+  <li><strong>Parametric False Negatives</strong>. True pairs that were compared but scored below the threshold. Parametric errors therefore reflect scoring limitations rather than candidate generation constraints.</li>
+
+</ul>
+
+<h4>Computational Performance</h4>
+
+<p>
+Beyond classification accuracy, both systems are evaluated in terms of computational efficiency.
+</p>
+
+<p>
+We measure:
+</p>
+
+<ul>
+<li>Total runtime of the matching process</li>
+<li>Number of candidate comparisons generated</li>
+<li>Time spent in blocking or candidate retrieval</li>
+<li>Time spent in similarity computation</li>
+</ul>
+
+<p>
+This allows us to compare not only predictive quality but also operational feasibility. In sanctions screening systems, matching accuracy must be balanced against scalability and processing constraints.
+</p>
+
+<h3>Code and Reproducibility</h3>
+
+<p>
+All scripts used in this series are available in this <a href="https://github.com/ejtorre/ejtorreBlog/tree/main/record-linkage-of-ofac-and-eu-sanctions-lists" target="_blank">public repository</a>. The repository includes data preparation, classical matching, embedding pipelines, and shared utilities. All reported results can be reproduced directly.
+</p>
+
+<h3>Part of the Series: A Practical Evaluation of Classical and Embedding-Based Entity Matching for Sanctions Screening</h3>
+
+<ul>
+  <li><strong>Part 1/4: </strong><a href="/blog/post/a-practical-evaluation-of-classical-and-embedding-based-entity-matching-for-sanctions-screening/">A Practical Evaluation of Classical and Embedding-Based Entity Matching for Sanctions Screening</a></li>
+  <li>Part 2/4: <a href="/blog/post/classical-sanctions-matching-system-implementation-evaluation">Classical Sanctions Matching System — Implementation and Evaluation</a></li>
+  <li>Part 3/4: <a href="/blog/post/embedding-based-sanctions-matching-system-implementation-evaluation">Embedding-Based Sanctions Matching System — Implementation and Evaluation</a></li>
+  <li>Part 4/4: <a href="/blog/post/operational-considerations-for-sanctions-entity-matching">Operational Considerations for Sanctions Entity Matching</a></li>
+</ul>
