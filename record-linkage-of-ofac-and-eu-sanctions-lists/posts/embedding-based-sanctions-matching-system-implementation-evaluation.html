@@ -1,8 +1,58 @@
+<h3>Introduction</h3>
+
+<p>In <a href="/blog/post/a-practical-evaluation-of-classical-and-embedding-based-entity-matching-for-sanctions-screening/">Part 1</a> of this series, we defined the experimental framework for comparing entity matching systems in the context of sanctions screening. In <a href="/blog/post/classical-sanctions-matching-system-implementation-evaluation">Part 2</a>, we implemented and evaluated a classical string-similarity pipeline and showed that part of its recall loss was structural, driven by the blocking strategy rather than by similarity threshold tuning.</p>
+
+<p>This post evaluates an alternative architecture based on text embeddings and vector similarity search. The objective is not merely to compare F1 scores, but to assess whether an embedding-based approach can relax some of the structural constraints identified in the classical pipeline while remaining computationally feasible.</p>
+
+<h3>Model Selection and Embedding Computation</h3>
+
+<p>The embedding model selected for this evaluation is <a href="https://huggingface.co/dell-research-harvard/lt-wikidata-comp-multi" target="_blank">dell-research-harvard/lt-wikidata-comp-multi</a>, available on Hugging Face.</p>
+
+<p>This model was chosen for three main reasons:</p>
+
+<ul>
+  <li>It is trained specifically for entity comparison tasks.</li>
+  <li>It is multilingual, which is essential given the presence of non-Latin and multi-language names in sanctions lists.</li>
+  <li>It leverages Wikidata-aligned training data, making it well suited for real-world entity representations.</li>
+</ul>
+
+<p>As a first step, we computed embeddings for all entities in the OFAC and EU sanctions lists. This process involved encoding each entity's name into a fixed-length vector representation using the selected model. Implementation details are available in the script <a href="https://github.com/ejtorre/ejtorreBlog/blob/main/record-linkage-of-ofac-and-eu-sanctions-lists/text-embeddings/text_embeddings_computation.py" target="_blank">text_embeddings_computation.py</a>.</p>
+
+<h3>Vector Similarity Search</h3>
+
+<p>To generate candidate pairs, a <a href="https://faiss.ai/index.html" target="_blank">FAISS</a> index was built using the embedding vectors of one dataset (e.g., OFAC). The embeddings of the other dataset (e.g., EU) were then queried against this index using a range search strategy. Pairs were retrieved when their cosine similarity exceeded a minimum threshold of 0.7. This threshold defines the minimum similarity required for a pair to be considered a candidate. The implementation deails can be found in the script <a href="https://github.com/ejtorre/ejtorreBlog/blob/main/record-linkage-of-ofac-and-eu-sanctions-lists/text-embeddings/text_embeddings_confusion_matrix.py" target="_blank">text_embeddings_confusion_matrix.py</a>.</p>
+
+<h3>Evaluation</h3>
+
+<p>We follow the same evaluation framework as in <a href="/blog/post/classical-sanctions-matching-system-implementation-evaluation">Part 2</a>. However, in this architecture the total number of false negatives is decomposed into:</p>
+
+<ul>
+  <li><strong>FN_THRESHOLD:</strong> candidate pairs retrieved from the vector index but classified as non-matches because their similarity falls below the selected operating threshold.</li>
+  <li><strong>FN_IN_MINTHRESHOLD:</strong>  true matches whose cosine similarity is below the minimum retrieval threshold (0.7) and are therefore never retrieved from the index.</li>
+</ul>
+
+<p>
+This decomposition is conceptually analogous to the distinction introduced in the classical pipeline, but the underlying mechanisms differ.
+</p>
+
+<p>In the classical system, FN_BLOCK originated from deterministic attribute-based filters (e.g., year of birth or normalized city) that excluded pairs before any similarity scoring took place. These exclusions were rule-driven and structurally defined.</p>
+
+<p>In the embedding-based system, pairs are not excluded by predefined attributes, but by insufficient similarity under the minimum retrieval threshold. The constraint is therefore implicit and similarity-driven rather than rule-based.</p>
+
+<p>The full confusion matrix is available <a href="https://github.com/ejtorre/ejtorreBlog/blob/main/record-linkage-of-ofac-and-eu-sanctions-lists/text-embeddings/text_embeddings_confusion_matrix.xlsx" target="_blank">here</a> and the implementation code can be consulted at <a href="https://github.com/ejtorre/ejtorreBlog/blob/main/record-linkage-of-ofac-and-eu-sanctions-lists/text-embeddings/text_embeddings_confusion_matrix.py" target="_blank">text_embeddings_confusion_matrix.py</a>.</p>
+
+<h3>Conclusions</h3>
+
+<p>The embedding-based system achieves maximum F1 at a threshold of 0.95 for both individuals and organizations. The recall at this operating point is 0.82 for individuals and 0.71 for organizations. Those levels may be operationally insufficient in high-sensitivity compliance contexts. Decreasing the threshold improves the recall, but at the cost of increased false positives. For example, a threshold of 0.7 yields a recall of 0.998 for individuals and 0.967 for organizations but the number of false positives is 342,543 for individuals and 14,193 for organizations which means a great operational cost for the teams that have to deal with these false positives.</p>
+
+<p>For individuals, only 4 out of 2,129 true matches fall below the minimum similarity threshold of 0.7, yielding a theoretical maximum recall of 0.998. For organizations, 30 out of 910 true matches fall below this threshold, corresponding to a maximum recall of 0.967.</p>
+
+<p>Comparisons below the 0.7 threshold indicate major differences between EU and OFAC names. For example, OpenSanctions lists EU.9725.71 (EU) and 43316 (OFAC) as the same person, but the EU name is VJATJESLAV VJATJESLAVOVITJ DUCHIN, while OFAC lists PAVEL VIKTOROVICH AKIFEV, with a similarity score of just 0.38. If this is not an OpenSanctions error, detecting the match based solely on name similarity would be very difficult.</p>
+
 <h3>Part of the Series: A Practical Evaluation of Classical and Embedding-Based Entity Matching for Sanctions Screening</h3>
 
 <ul>
-  <li>Part 1/4: <a href="/blog/post/a-practical-evaluation-of-classical-and-embedding-based-entity-matching-for-sanctions-screening/">A Practical Evaluation of Classical and Embedding-Based Entity Matching for Sanctions Screening</a></li>
-  <li>Part 2/4: <a href="/blog/post/classical-sanctions-matching-system-implementation-evaluation">Classical Sanctions Matching System — Implementation and Evaluation</a></li>
-  <li><strong>Part 3/4:</strong> <a href="/blog/post/embedding-based-sanctions-matching-system-implementation-evaluation">Embedding-Based Sanctions Matching System — Implementation and Evaluation</a></li>
-  <li>Part 4/4: <a href="/blog/post/operational-considerations-for-sanctions-entity-matching">Operational Considerations for Sanctions Entity Matching</a></li>
+  <li>Part 1/3: <a href="/blog/post/a-practical-evaluation-of-classical-and-embedding-based-entity-matching-for-sanctions-screening/">A Practical Evaluation of Classical and Embedding-Based Entity Matching for Sanctions Screening</a></li>
+  <li>Part 2/3: <a href="/blog/post/classical-sanctions-matching-system-implementation-evaluation">Classical Sanctions Matching System — Implementation and Evaluation</a></li>
+  <li><strong>Part 3/3:</strong> <a href="/blog/post/embedding-based-sanctions-matching-system-implementation-evaluation">Embedding-Based Sanctions Matching System — Implementation and Evaluation</a></li>
 </ul>

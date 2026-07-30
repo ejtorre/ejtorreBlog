@@ -13,10 +13,10 @@ The classical pipeline consists of:
 </p>
 
 <ul>
-  <li>Preparing and normalizing entity names</li>
-  <li>Generating candidate pairs using blocking in order to reduce the number of comparisons</li>
+  <li>Preparing and normalizing entity names.</li>
+  <li>Generating candidate pairs using blocking in order to reduce the number of comparisons.</li>
   <li>Computing similarity scores</li>
-  <li>Evaluating classification performance under different thresholds</li>
+  <li>Evaluating classification performance under different thresholds.</li>
 </ul>
 
 <h3>Data Preparation and Normalization</h3>
@@ -45,8 +45,8 @@ As discussed previously, comparing every EU entity against every OFAC entity wou
 <p>The first and most fundamental blocking rule is to compare entities only within the same record type:</p>
 
 <ul>
-  <li>Individuals are only compared against individuals</li>
-  <li>Organizations are only compared against organizations</li>
+  <li>Individuals are only compared against individuals.</li>
+  <li>Organizations are only compared against organizations.</li>
 </ul>
 
 <p>This immediately removes structurally impossible matches (e.g., a natural person matched against a corporation), significantly reducing the search space.</p>
@@ -125,8 +125,8 @@ Based on this analysis, the adopted blocking strategy was:
 </p>
 
 <ul>
-<li><strong>Individuals:</strong> Type + Year of Birth</li>
-<li><strong>Organizations:</strong> Type + Address Normalized City + Address Country ISO Code</li>
+<li><strong>Individuals:</strong> Type + Year of Birth.</li>
+<li><strong>Organizations:</strong> Type + Address Normalized City + Address Country ISO Code.</li>
 </ul>
 
 <p>In both cases, records with missing blocking variables are excluded from comparison (i.e., missing values are ignored rather than compared against all entities of the same type).</p>
@@ -150,32 +150,32 @@ Based on this analysis, the adopted blocking strategy was:
 
 <p>A pair is classified as a match if the score exceeds a given threshold. The threshold is later varied to analyze precision-recall trade-offs.</p>
 
-<h3>Evaluation of the Classical Matching Pipeline</h3>
+<h3>Evaluation</h3>
 
 <p>The performance of the classical fuzzy-matching system was evaluated across multiple similarity thresholds using manually validated cross-list matches as ground truth (<a href="https://www.opensanctions.org/" title="OpenSanctions" target="_blank">OpenSanctions</a>).</p>
 
 <p>For each threshold and for each entity type (individuals and organizations), results are summarized using the standard confusion matrix. The full confusion matrix is available <a href="https://github.com/ejtorre/ejtorreBlog/blob/main/record-linkage-of-ofac-and-eu-sanctions-lists/fuzzy-logic/fuzzy_logic_confusion_matrix.xlsx" target="_blank">here</a> and the impletation code can be consulted at <a href="https://github.com/ejtorre/ejtorreBlog/blob/main/record-linkage-of-ofac-and-eu-sanctions-lists/fuzzy-logic/fuzzy_logic_confusion_matrix.py" target="_blank">fuzzy_logic_confusion_matrix.py</a>. The indicators are defined as follows:</p>
 
 <ul>
-  <li><strong>TP:</strong> True positives</li>
-  <li><strong>FP:</strong> False positives</li>
-  <li><strong>FN_THRESHOLD:</strong> candidate pairs below similarity threshold</li>
-  <li><strong>FN_BLOCK:</strong> true matches excluded by blocking</li>
-  <li><strong>FN_TOT = FN_THRESHOLD + FN_BLOCK</strong></li>
-  <li><strong>Precision:</strong> TP / (TP + FP)</li>
-  <li><strong>Recall:</strong> TP / (TP + FN_TOT)</li>
-  <li><strong>F1:</strong> 2 * (Precision * Recall) / (Precision + Recall)</li>
+  <li><strong>TP:</strong> True positives.</li>
+  <li><strong>FP:</strong> False positives.</li>
+  <li><strong>FN_THRESHOLD:</strong> candidate pairs below similarity threshold.</li>
+  <li><strong>FN_BLOCK:</strong> true matches excluded by blocking.</li>
+  <li><strong>FN_TOT = FN_THRESHOLD + FN_BLOCK.</strong></li>
+  <li><strong>Precision:</strong> TP / (TP + FP).</li>
+  <li><strong>Recall:</strong> TP / (TP + FN_TOT).</li>
+  <li><strong>F1:</strong> 2 * (Precision * Recall) / (Precision + Recall).</li>
 </ul>
 
 <h3>Conclusions</h3>
 
-<p>The classical system achieves maximum F1 at a threshold of 0.95 for both individuals and organizations. However, at this operating point recall is 0.82 for individuals and 0.63 for organizations — levels that may be operationally insufficient in high-sensitivity compliance contexts. Decreasing the threshold to improve recall results in a significant increase but even at the lowest threshold (0.7), recall remains low (0.89 for individuals and 0.72 for organizations)</p>
+<p>The classical system achieves maximum F1 at a threshold of 0.95 for both individuals and organizations. However, at this operating point recall is 0.82 for individuals and 0.63 for organizations. Those levels may be operationally insufficient in high-sensitivity compliance contexts. Decreasing the threshold to improve recall results in a significant increase but even at the lowest threshold (0.7), recall remains low (0.89 for individuals and 0.72 for organizations)</p>
 
 <p>The key insight from the confusion matrix analysis is that recall degradation is not solely a threshold tuning problem because a material portion of total false negatives originates from the blocking stage.</p> 
 
 <p>Let T denote the total number of true cross-list matches. Because FN_BLOCK corresponds to matches excluded prior to scoring, the maximum achievable recall of the system is bounded by:</p>
 
-<p>max_recall = (T − FN_BLOCK) / T.</p>
+<p>max_recall = (T − FN_BLOCK) / T</p>
 
 <p>In the case of individuals, FN_BLOCK = 235 and T = 2,129, yielding a structural maximum recall of 0.89. For organizations, FN_BLOCK = 254 and T = 910, resulting in a maximum recall of 0.72.</p>
 
@@ -186,8 +186,7 @@ Based on this analysis, the adopted blocking strategy was:
 <h3>Part of the Series: A Practical Evaluation of Classical and Embedding-Based Entity Matching for Sanctions Screening</h3>
 
 <ul>
-  <li>Part 1/4: <a href="/blog/post/a-practical-evaluation-of-classical-and-embedding-based-entity-matching-for-sanctions-screening/">A Practical Evaluation of Classical and Embedding-Based Entity Matching for Sanctions Screening</a></li>
-  <li><strong>Part 2/4:</strong> <a href="/blog/post/classical-sanctions-matching-system-implementation-evaluation">Classical Sanctions Matching System — Implementation and Evaluation</a></li>
-  <li>Part 3/4: <a href="/blog/post/embedding-based-sanctions-matching-system-implementation-evaluation">Embedding-Based Sanctions Matching System — Implementation and Evaluation</a></li>
-  <li>Part 4/4: <a href="/blog/post/operational-considerations-for-sanctions-entity-matching">Operational Considerations for Sanctions Entity Matching</a></li>
+  <li>Part 1/3:<a href="/blog/post/a-practical-evaluation-of-classical-and-embedding-based-entity-matching-for-sanctions-screening/">A Practical Evaluation of Classical and Embedding-Based Entity Matching for Sanctions Screening</a></li>
+  <li><strong>Part 2/3:</strong> <a href="/blog/post/classical-sanctions-matching-system-implementation-evaluation">Classical Sanctions Matching System — Implementation and Evaluation</a></li>
+  <li>Part 3/3: <a href="/blog/post/embedding-based-sanctions-matching-system-implementation-evaluation">Embedding-Based Sanctions Matching System — Implementation and Evaluation</a></li>
 </ul>
