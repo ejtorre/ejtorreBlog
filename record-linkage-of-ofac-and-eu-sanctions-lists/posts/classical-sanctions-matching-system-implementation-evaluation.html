@@ -15,7 +15,7 @@ The classical pipeline consists of:
 <ul>
   <li>Preparing and normalizing entity names.</li>
   <li>Generating candidate pairs using blocking in order to reduce the number of comparisons.</li>
-  <li>Computing similarity scores</li>
+  <li>Computing similarity scores.</li>
   <li>Evaluating classification performance under different thresholds.</li>
 </ul>
 
@@ -179,14 +179,14 @@ Based on this analysis, the adopted blocking strategy was:
 
 <p>In the case of individuals, FN_BLOCK = 235 and T = 2,129, yielding a structural maximum recall of 0.89. For organizations, FN_BLOCK = 254 and T = 910, resulting in a maximum recall of 0.72.</p>
 
-<p>This upper bound is independent of similarity tuning. Even with a zero threshold — i.e., classifying all candidate pairs as matches — recall cannot exceed this structural ceiling. Structural false negatives (FN_BLOCK) remain invisible to tuning, since they are never evaluated.</p>
+<p>This upper bound is independent of similarity tuning. Even with a zero threshold i.e. classifying all candidate pairs as matches, recall cannot exceed this structural ceiling. Structural false negatives (FN_BLOCK) remain invisible to tuning, since they are never evaluated.</p>
 
 <p>In practice, this means that improving string similarity alone cannot materially increase recall beyond the structural ceiling imposed by blocking. Any further improvement would require revisiting the candidate generation strategy itself.</p>
 
 <h3>Part of the Series: A Practical Evaluation of Classical and Embedding-Based Entity Matching for Sanctions Screening</h3>
 
 <ul>
-  <li>Part 1/3:<a href="/blog/post/a-practical-evaluation-of-classical-and-embedding-based-entity-matching-for-sanctions-screening/">A Practical Evaluation of Classical and Embedding-Based Entity Matching for Sanctions Screening</a></li>
-  <li><strong>Part 2/3:</strong> <a href="/blog/post/classical-sanctions-matching-system-implementation-evaluation">Classical Sanctions Matching System — Implementation and Evaluation</a></li>
-  <li>Part 3/3: <a href="/blog/post/embedding-based-sanctions-matching-system-implementation-evaluation">Embedding-Based Sanctions Matching System — Implementation and Evaluation</a></li>
+  <li>Part 1/3: <a href="/blog/post/a-practical-evaluation-of-classical-and-embedding-based-entity-matching-for-sanctions-screening/">A Practical Evaluation of Classical and Embedding-Based Entity Matching for Sanctions Screening</a></li>
+  <li><strong>Part 2/3:</strong> <a href="/blog/post/classical-sanctions-matching-system-implementation-evaluation">Classical Sanctions Matching System: Implementation and Evaluation</a></li>
+  <li>Part 3/3: <a href="/blog/post/embedding-based-sanctions-matching-system-implementation-evaluation">Embedding-Based Sanctions Matching System: Implementation and Evaluation</a></li>
 </ul>

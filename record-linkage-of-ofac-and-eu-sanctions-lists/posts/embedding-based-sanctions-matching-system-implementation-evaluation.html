@@ -20,7 +20,7 @@
 
 <h3>Vector Similarity Search</h3>
 
-<p>To generate candidate pairs, a <a href="https://faiss.ai/index.html" target="_blank">FAISS</a> index was built using the embedding vectors of one dataset (e.g., OFAC). The embeddings of the other dataset (e.g., EU) were then queried against this index using a range search strategy. Pairs were retrieved when their cosine similarity exceeded a minimum threshold of 0.7. This threshold defines the minimum similarity required for a pair to be considered a candidate. The implementation deails can be found in the script <a href="https://github.com/ejtorre/ejtorreBlog/blob/main/record-linkage-of-ofac-and-eu-sanctions-lists/text-embeddings/text_embeddings_confusion_matrix.py" target="_blank">text_embeddings_confusion_matrix.py</a>.</p>
+<p>To generate candidate pairs, a <a href="https://faiss.ai/index.html" target="_blank">FAISS</a> index was built using the embedding vectors of one dataset (e.g., OFAC). The embeddings of the other dataset (e.g., EU) were then queried against this index using a range search strategy. Pairs were retrieved when their cosine similarity exceeded a minimum threshold of 0.7. This threshold defines the minimum similarity required for a pair to be considered a candidate. The implementation details can be found in the script <a href="https://github.com/ejtorre/ejtorreBlog/blob/main/record-linkage-of-ofac-and-eu-sanctions-lists/text-embeddings/text_embeddings_confusion_matrix.py" target="_blank">text_embeddings_confusion_matrix.py</a>.</p>
 
 <h3>Evaluation</h3>
 
@@ -53,6 +53,6 @@ This decomposition is conceptually analogous to the distinction introduced in th
 
 <ul>
   <li>Part 1/3: <a href="/blog/post/a-practical-evaluation-of-classical-and-embedding-based-entity-matching-for-sanctions-screening/">A Practical Evaluation of Classical and Embedding-Based Entity Matching for Sanctions Screening</a></li>
-  <li>Part 2/3: <a href="/blog/post/classical-sanctions-matching-system-implementation-evaluation">Classical Sanctions Matching System — Implementation and Evaluation</a></li>
-  <li><strong>Part 3/3:</strong> <a href="/blog/post/embedding-based-sanctions-matching-system-implementation-evaluation">Embedding-Based Sanctions Matching System — Implementation and Evaluation</a></li>
+  <li>Part 2/3: <a href="/blog/post/classical-sanctions-matching-system-implementation-evaluation">Classical Sanctions Matching System: Implementation and Evaluation</a></li>
+  <li><strong>Part 3/3:</strong> <a href="/blog/post/embedding-based-sanctions-matching-system-implementation-evaluation">Embedding-Based Sanctions Matching System: Implementation and Evaluation</a></li>
 </ul>
